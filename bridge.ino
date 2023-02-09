@@ -1,29 +1,34 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
-#include "Stepper.h"
+#include <Stepper.h>
 
-int turnDirection = -1;
-int lastDirection = turnDirection;
+const int LED_PIN = 13;
+
+// Taken from here: https://arduinogetstarted.com/tutorials/arduino-controls-28byj-48-stepper-motor-using-uln2003-driver
 
 // Number taken from here: https://www.makerguides.com/28byj-48-stepper-motor-arduino-tutorial/
-const int stepsPerRevolution = 1024;
+const int STEPS_PER_REVOLUTION = 2048;
 
-Stepper stepper = Stepper(stepsPerRevolution, 8, 10, 9, 11);
+// Note: The order of pins is adapted to the *actual* wiring on the stepper
+// motor and differs from the order describe in the previous articles.
+Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10);
+
+int position = 0;
+
+int target = 268;
+
+int threshold = 5;
 
 void setup(){
-  // Set stepper speed to 20 rpms; this may be too slow
-  // however, greater speeds are not supported.
-  stepper.setSpeed(20);
-
-  // The stepper motor needs time to settle.
-  delay(1000);
-
-  // The digital pin used for the hall sensor.
-  // pinMode(2, INPUT);
+  // Set the built-in LED pin as output.
+  pinMode(LED_PIN, OUTPUT);
 
   // Initialize the serial interface with a baudrate of 9600.
   Serial.begin(9600);
+
+  // The stepper motor needs time to settle.
+  delay(1000);
 
   // Write a header to be able to distiguish different runs on the console.
   Serial.println();
@@ -31,151 +36,47 @@ void setup(){
 }
 
 void loop() {
-  // loopTest();
-  loopBall();
-}
+  bool levelled = updatePosition();
 
-void loopTest() {
-  Serial.print("Direction: ");
-  Serial.println(turnDirection);
+  if(!levelled) {
+    digitalWrite(LED_PIN, LOW);
+  } else {
+    digitalWrite(LED_PIN, HIGH);
 
-  // Turn upwards and then downwards leaving a slight slope.
-  turn(turnDirection * stepsPerRevolution);
-  turn(turnDirection * -stepsPerRevolution);
-
-  Serial.println("Levelled..");
-  delay(5000);
-
-  // Now turn in the opposite direction.
-  turnDirection = turnDirection * -1;  
-}
-
-void loopBall() {
-  Serial.print("Direction: ");
-  Serial.println(turnDirection);
-
-  // We use different turning angles for each direction because
-  // the bridge turns faster when turning counter clock wise.
-  // const float alpha = turnDirection == 1 ? 0.8 : 0.9;
-
-  const int a = floor(0.95 * stepsPerRevolution);
-  const int b = floor(0.8 * a);
-  const int c = a - b;
-
-  // Turn upwards and then downwards leaving a slight slope.
-  int t = turn(turnDirection * a);
-
-  t = turn(turnDirection * -b);
-  t = max(10000 - t, 0);
-  
-  if(t > 0) {
-    Serial.print("Waiting ");
-    Serial.print(t);
-    Serial.println("ms");
+    Serial.println("LEVELLED");
   }
 
-  // Wait for the ball to settle..
-  delay(t);
-
-  // Level the bridge again.
-  turn(turnDirection * -c);
-
-  Serial.println("Levelled..");
-  // delay(100);
-
-  // Now turn in the opposite direction.
-  turnDirection = turnDirection * -1;
+  step();
 }
 
-int turn(int steps) {
-  int s = steps;
-  
-  unsigned long t = millis();
-  
-  Serial.print("Turn: ");
-  Serial.print(s);
-  Serial.print(" steps");
-  Serial.flush();
+bool updatePosition() {
+  // Map the 8 Bit analog value to the 6cm scale of the potentiometer.
+  position = map(analogRead(A0), 0, 1024, 0, 600);
 
-  stepper.step(s);
+  Serial.print("position: ");
+  Serial.println(position);
 
-  int result = millis() - t;
+  int center = 300;
 
-  Serial.print("; took ");
-  Serial.print(result);
-  Serial.println("ms");
-
-  return result;
+  return (center - threshold) < position && position < (center + threshold);
 }
 
-// bool getHallSensorValue() {
-//   return digitalRead(2) == 1.0;
-// }
+void step() {
+  int distance = target - position;
 
-// bool isBridgeLevelled() {
-//   int n = 3;
+  Serial.print("step: ");
+  Serial.println(distance);
 
-//   while(n > 0) {
-//     bool result = getHallSensorValue();
+  if(abs(distance) >= threshold)
+  {
+    int d = distance > 0 ? -1 : 1;
+    int s = d * min(100, abs(distance));
 
-//     Serial.print("isBridgeLevelled: ");
-//     Serial.println(result ? "true" : "false");
+    // This is the speed I found to be most reliable. With higher
+    // speeds the motor has hick-ups when running counter clock wise.
+    stepper.setSpeed(11);
+    stepper.step(s);
 
-//     if(!result) {
-//       return false;
-//     }
-
-//     delay(1);
-
-//     n -= 1;
-//   }
-
-//   return true;
-// }
-
-// bool testHallSensor() {
-//   do {
-//     bool value = getHallSensorValue();
-
-//     Serial.print("testHallSensor: ");
-//     Serial.println(value ? "true" : "false");
-
-//     delay(1000);
-//   }
-//   while(true);
-// }
-
-// bool levelBridge() {
-//   bool levelled = isBridgeLevelled();
-//   int n = 0;
-
-//   Serial.println(levelled);
-  
-//   // Rotate by max 200 steps in one direction to find zero.
-//   while(!levelled && n < 400) {
-//     stepper.step(5);
-
-//     n += 5;
-
-//     levelled = isBridgeLevelled();
-
-//     if(levelled) {
-//       return true;
-//     }
-//   }
-
-//   // If we are not levelled, try to rotate the same amount in the other direction.
-//   while(!levelled && -400 < n) {
-//     stepper.step(-5);
-
-//     n -= 5;
-
-//     levelled = isBridgeLevelled();
-
-//     if(levelled) {
-//       return true;
-//     }
-//   }
-
-//   return levelled;
-// }
+    position += s;
+  }
+}

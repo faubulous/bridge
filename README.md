@@ -29,7 +29,7 @@ Note: On Linux you must ensure that your user has write privileges to the USB de
 ## Making Changes
 The timing of the bridge movement is delicate but essential for the ball not to become to fast or to get stuck along the way. In order to make changes to the timing you can change the following lines of code:
 
-```
+```cpp
 // Defines potentiometer values that should be moved to in the given sequence.
 // When the last value was reached the list will skip the first value and repeat from the second.
 int targetList[5] = { 0, 160, 50, -160, -50 };
@@ -61,13 +61,13 @@ Instead it is wired like this:
 
 This is why the Stepper motor is initialized in the following sequence:
 
-```
+```cpp
 Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10);
 ```
 
 As opposed to the sequence mentioned in most articles:
 
-```
+```cpp
 Stepper stepper(STEPS_PER_REVOLUTION, 8, 10, 9, 11);
 ```
 

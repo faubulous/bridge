@@ -53,7 +53,7 @@ When altering the list one must ensure that the array size of both, the `targetL
 ### Stepper Initalization Pin Order
 The wiring of the used `28BYJ 48` stepper motor does not match the standard (BLUE, PINK, RED, ORANGE, YELLOW).
 
-<img src="https://gds-storage-prd.s3.amazonaws.com/unified-gallery/170226/2177/78c431cb/thumbnails/28byj-48-stepper-motor-2017-02-26-04-3500-3500.jpg" width="400">
+<img src="https://udvabony.com/wp-content/uploads/2019/05/28byj-48_high_quality_stepper_motor_12v_-1.jpg" width="400">
 
 Instead it is wired like this:
 

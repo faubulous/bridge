@@ -5,6 +5,8 @@
 const int LED_PIN = 13;
 
 // The stepper motor speed in rounds per minute.
+// Note: This is the speed I found to be most reliable. With higher
+// speeds the motor has hickups when running counter clock wise (CCW).
 const int SPEED_RPM = 11;
 
 // See: https://arduinogetstarted.com/tutorials/arduino-controls-28byj-48-stepper-motor-using-uln2003-driver
@@ -13,8 +15,8 @@ const int STEPS_PER_REVOLUTION = 2048;
 
 // Note: The order of pins is adapted to the *actual* wiring on the stepper
 // motor and differs from the order describe in the previous articles.
-Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10); // 5V stepper motor
-// Stepper stepper(STEPS_PER_REVOLUTION, 11, 9, 10, 8); // 12V stepper motor
+// Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10); // 5V stepper motor
+Stepper stepper(STEPS_PER_REVOLUTION, 11, 9, 10, 8); // 12V stepper motor
 
 // Potentiometer value when the bridge is levelled.
 int center = 268;
@@ -101,8 +103,6 @@ void step()
     int d = distance > 0 ? 1 : -1;
     int s = d * min(100, abs(distance));
 
-    // This is the speed I found to be most reliable. With higher
-    // speeds the motor has hickups when running counter clock wise (CCW).
     stepper.setSpeed(SPEED_RPM);
     stepper.step(s);
 

@@ -4,24 +4,28 @@
 
 const int LED_PIN = 13;
 
+// The stepper motor speed in rounds per minute.
+const int SPEED_RPM = 11;
+
 // See: https://arduinogetstarted.com/tutorials/arduino-controls-28byj-48-stepper-motor-using-uln2003-driver
 // See: https://www.makerguides.com/28byj-48-stepper-motor-arduino-tutorial/
 const int STEPS_PER_REVOLUTION = 2048;
 
 // Note: The order of pins is adapted to the *actual* wiring on the stepper
 // motor and differs from the order describe in the previous articles.
-Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10);
+Stepper stepper(STEPS_PER_REVOLUTION, 9, 11, 8, 10); // 5V stepper motor
+// Stepper stepper(STEPS_PER_REVOLUTION, 11, 9, 10, 8); // 12V stepper motor
 
 // Potentiometer value when the bridge is levelled.
 int center = 268;
 
 // Defines potentiometer values that should be moved to in the given sequence.
 // When the last value was reached the list will skip the first value and repeat from the second.
-int targetList[5] = { 0, 160, 50, -160, -50 };
+int targetList[5] = { 0, 155, 50, -155, -50 };
 
 // Defines delays in ms that should be waited after a target was reached. The
 // sequence corresponds to the values in the above target list.
-int targetDelay[5] = { 5000, 0, 7200, 0, 7200 };
+int targetDelay[5] = { 5000, 0, 6500, 0, 6500 };
 
 // Index from 0 to len(targetList) - 1 of the currently selected target.
 int targetIndex = 0;
@@ -94,12 +98,12 @@ void step()
   if(abs(distance) > threshold)
   {
     // Get the required direction towards the target; -1 is CCW and 1 is CW.
-    int d = distance > 0 ? -1 : 1;
+    int d = distance > 0 ? 1 : -1;
     int s = d * min(100, abs(distance));
 
     // This is the speed I found to be most reliable. With higher
     // speeds the motor has hickups when running counter clock wise (CCW).
-    stepper.setSpeed(11);
+    stepper.setSpeed(SPEED_RPM);
     stepper.step(s);
 
     position += s;

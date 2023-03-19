@@ -100,7 +100,7 @@ void step()
   if(abs(distance) > threshold)
   {
     // Get the required direction towards the target; -1 is CCW and 1 is CW.
-    int d = distance > 0 ? 1 : -1;
+    int d = distance > 0 ? -1 : 1;
     int s = d * min(100, abs(distance));
 
     stepper.setSpeed(SPEED_RPM);
